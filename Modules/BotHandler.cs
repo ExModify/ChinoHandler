@@ -81,9 +81,17 @@ namespace ChinoHandler.Modules
             if (Running)
                 ChinoProcess.Kill();
         }
-        
+        public void Update()
+        {
+            if (Running)
+            {
+                Send("updatefound");
+                ChinoProcess.WaitForExit();
+            }
+        }
         public void Send(string Message)
         {
+            Writer.Flush();
             Writer.WriteLine(Message);
         }
 
@@ -104,7 +112,7 @@ namespace ChinoHandler.Modules
             {
                 try
                 {
-                    ChinoResponse Response = JsonConvert.DeserializeObject<ChinoResponse>(Line);
+                    LogMessage Response = JsonConvert.DeserializeObject<LogMessage>(Line);
                     Logger.Log(Response.Message, Response.Module, Response.Color, Response.Type);
                 }
                 catch
@@ -128,9 +136,6 @@ namespace ChinoHandler.Modules
             Process currentProcess = ChinoProcess;
             return currentProcess.NonpagedSystemMemorySize64 + currentProcess.PagedMemorySize64;
         }
-
-        
-
     }
 
     

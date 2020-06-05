@@ -1,3 +1,5 @@
+using System.ComponentModel;
+using System.Reflection;
 using System;
 using System.IO;
 using System.Net;
@@ -15,7 +17,9 @@ namespace ChinoHandler.Models
         public string HandlerProjectUrl { get; set; } = "https://github.com/ExModify/ChinoHandler";
         public string TempFolder { get; set; } = "Projects";
         public string WebhookSecret { get; set; }
-        
+        public Credentials RemoteConsoleCredentials { get; set; } = new Credentials();
+        public string IPAddress { get; set; } = "";
+        public int Port { get; set; } = 2465;
         public bool BypassMenu { get; set; } = false;
 
 
@@ -25,6 +29,27 @@ namespace ChinoHandler.Models
         public void SaveConfig()
         {
             File.WriteAllText(Path, JsonConvert.SerializeObject(this, Formatting.Indented));
+        }
+
+
+        public bool IsNewConfig()
+        {
+            return IsNewConfig(this);
+        }
+        private bool IsNewConfig(object obj)
+        {
+            PropertyInfo[] properties = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            foreach (PropertyInfo property in properties)
+            {
+                object o = property.GetValue(obj);
+                if (o == null) return true;
+                else if (!Program.NotClass.Contains(property.PropertyType.Name))
+                {
+                    if (IsNewConfig(o))
+                        return true;
+                }
+            }
+            return false;
         }
     }
 }

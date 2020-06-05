@@ -124,6 +124,7 @@ namespace ChinoHandler.Modules
                 string location = Program.BotHandler.Location;
                 Program.BotHandler.Quit();
                 File.Copy(file, location, true);
+                Program.BotHandler.Start();
             }
             else
             {

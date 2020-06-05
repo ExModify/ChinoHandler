@@ -5,6 +5,7 @@ using ChinoHandler.Models;
 using ChinoHandler.Modules;
 using Newtonsoft.Json;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace ChinoHandler
 {
@@ -16,21 +17,37 @@ namespace ChinoHandler
         public static BotHandler BotHandler;
         public static Updater Updater;
         public static MenuHandler MenuHandler;
+        public static RemoteConsole RemoteConsole;
+        public static bool ShowMenu { get; set; }
+
+        public static List<string> NotClass = new List<string>() { "Int32", "String", "Double", "Int64", "Single" };
 
         public static event Action BotUpdate;
         public static event Action HandlerUpdate;
 
+        public static ConfigEditor ConfigEditor;
+
         static bool Running { get; set; } = true;
 
-        static bool ShowMenu { get; set; }
 
         static void Main(string[] args)
         {
+            Logger.SetupLogger();
+            
             Logger.Log("Chino-chan handler loading...");
+            ConfigEditor = new ConfigEditor();
 
+            loadConfig:
             Logger.Log("Loading config...");
             Config = LoadConfig(ConfigPath);
             Logger.Log("Config loaded!", Color: ConsoleColor.Green);
+            if (Config.IsNewConfig())
+            {
+                Config.SaveConfig();
+                Logger.Log("Your config is outdated! Please check your configuration to avoid future crashes, and press enter!", Color: ConsoleColor.Cyan);
+                ConfigEditor.FillEmpty(Config);
+                goto loadConfig;
+            }
 
             Logger.Log("Checking libraries...");
             if (!CheckLibraries())
@@ -52,6 +69,10 @@ namespace ChinoHandler
             Logger.Log("Initializing updater...");
             Updater = new Updater(Config);
             Logger.Log("Updater initialized!", Color: ConsoleColor.Green);
+            
+            Logger.Log("Initializing Remote Console...");
+            RemoteConsole = new RemoteConsole(Config);
+            Logger.Log("Remote Console initialized!", Color: ConsoleColor.Green);
 
             
             Logger.Log("Initializing menu...");
@@ -59,6 +80,12 @@ namespace ChinoHandler
             MenuHandler.Add("Start", () =>
             {
                 BotHandler.Start();
+                ShowMenu = false;
+            });
+            MenuHandler.Add("Edit Config", () =>
+            {
+                ConfigEditor.EditAll(Config);
+                Logger.Log("Restart the program for the changes to take effect.");
             });
             MenuHandler.Add("Exit", () =>
             {
@@ -73,10 +100,11 @@ namespace ChinoHandler
                 Logger.Log("Webhook manager successfully started!", Color: ConsoleColor.Green);
                 Console.Clear();
             }
+            RemoteConsole.Start();
             Console.WriteLine();
             HandleCommands();
         }
-
+        
         static void HandleCommands()
         {
             ShowMenu = !Config.BypassMenu;
@@ -94,6 +122,8 @@ namespace ChinoHandler
                 {
                     BotHandler.Start();
                     ShowMenu = false;
+                    Logger.HungLogs.ForEach(t => Logger.Log(t.Message, t.Module, t.Color, t.Type));
+                    Logger.HungLogs.Clear();
                 }
                 string input = Console.ReadLine();
 
