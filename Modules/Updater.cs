@@ -101,17 +101,18 @@ namespace ChinoHandler.Modules
         }
         string Compile(string Folder)
         {
-            StartAndWait("dotnet restore", Folder);
+            string csporj = Directory.EnumerateFiles(Folder, "*.csproj").First();
+            StartAndWait("dotnet restore " + csporj, Folder);
             string copyFolder = Folder + "/bin/Release/netcoreapp3.1/";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 copyFolder += "win-x64/";
-                StartAndWait("dotnet publish -c Release -f netcoreapp3.1 -r win-x64 -p:PublishSingleFile=true", Folder);
+                StartAndWait("dotnet publish " + csporj + " -c Release -f netcoreapp3.1 -r win-x64 -p:PublishSingleFile=true", Folder);
             }
             else
             {
                 copyFolder += "linux-x64/";
-                StartAndWait("dotnet publish -c Release -f netcoreapp3.1 -r linux-x64 -p:PublishSingleFile=true", Folder);
+                StartAndWait("dotnet publish " + csporj + " -c Release -f netcoreapp3.1 -r linux-x64 -p:PublishSingleFile=true", Folder);
             }
 
             return copyFolder + "publish";

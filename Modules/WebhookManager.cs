@@ -90,7 +90,7 @@ namespace ChinoHandler.Modules
                         string content = Encoding.UTF8.GetString(data, 0, length);
                         if (content.Contains("commits"))
                         {
-                            Program.TriggerNewUpdateEvent(content.Contains(@"""name"": ""Chino-chan"""));
+                            Program.TriggerNewUpdateEvent(content.Contains(@"""name"": ""ChinoHandler"""));
                         }
                     }
                 }
