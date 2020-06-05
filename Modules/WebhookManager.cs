@@ -108,10 +108,11 @@ namespace ChinoHandler.Modules
                     }
                     if (hashString == sentSecret)
                     {
-                        Console.WriteLine("Identical!");
                         if (content.Contains("commits"))
                         {
-                            Program.TriggerNewUpdateEvent(!content.Contains(@"""name"": ""ChinoHandler"""));
+                            bool handler = content.Contains("\"name\": \"ChinoHandler\"");
+                            Console.WriteLine(handler);
+                            Program.TriggerNewUpdateEvent(!handler);
                         }
                         context.Response.StatusCode = 200;
                         context.Response.Close();
