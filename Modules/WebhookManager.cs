@@ -86,6 +86,7 @@ namespace ChinoHandler.Modules
                     int length = (int)request.ContentLength64;
                     byte[] data = new byte[length];
                     request.InputStream.Read(data, 0, length);
+                    
                     string content = Encoding.UTF8.GetString(data, 0, length);
 
                     string sentSecret = request.Headers.Get("X-Hub-Signature").Substring(5);
