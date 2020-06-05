@@ -142,7 +142,7 @@ namespace ChinoHandler.Modules
                             + "timeout /t 5 /nobreak\r\n"
                             + "goto loop\r\n)\r\n"
                             + $"copy /y \"{ file }\" \"{ location }\"\r\n"
-                            + $"cmd /c \"{ location }\"\r\n"
+                            + $"start cmd /c \"{ location }\"\r\n"
                             + "del \"%~f0\"";
                 }
                 else
