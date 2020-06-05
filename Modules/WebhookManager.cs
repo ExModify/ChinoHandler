@@ -118,7 +118,6 @@ namespace ChinoHandler.Modules
                     }
                     else
                     {
-                        Console.WriteLine("Mismatch - \"{0}\" - \"{1}\"", sentSecret, hashString);
                         context.Response.StatusCode = 500;
                         context.Response.Close();
                     }
