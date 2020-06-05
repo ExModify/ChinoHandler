@@ -108,13 +108,14 @@ namespace ChinoHandler.Modules
                     }
                     if (hashString == sentSecret)
                     {
+                        context.Response.StatusCode = 200;
+                        context.Response.Close();
+                        
                         if (content.Contains("commits"))
                         {
                             bool handler = content.Contains("\"name\":\"ChinoHandler\"") || content.Contains("\"name\": \"ChinoHandler\"");
                             Program.TriggerNewUpdateEvent(!handler);
                         }
-                        context.Response.StatusCode = 200;
-                        context.Response.Close();
                     }
                     else
                     {
