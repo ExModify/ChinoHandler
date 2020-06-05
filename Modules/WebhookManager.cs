@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System;
 using System.IO;
 using System.Net;
@@ -61,6 +62,7 @@ namespace ChinoHandler.Modules
 
                 if (request.HttpMethod != "POST")
                 {
+                    Console.WriteLine("Not POST!");
                     HttpListenerResponse response = context.Response;
 
                     string content = 
@@ -81,17 +83,44 @@ namespace ChinoHandler.Modules
                 }
                 else
                 {
-                    string sentSecret = request.Headers.Get("X-Hub-Signature");
-                    if (sentSecret == Secret)
+                    int length = (int)request.ContentLength64;
+                    byte[] data = new byte[length];
+                    request.InputStream.Read(data, 0, length);
+                    string content = Encoding.UTF8.GetString(data, 0, length);
+
+                    string sentSecret = request.Headers.Get("X-Hub-Signature").Substring(5);
+                    var secret = Encoding.ASCII.GetBytes(Secret);
+                    var payloadBytes = Encoding.ASCII.GetBytes(content);
+                    string hashString;
+
+                    using (var hmSha1 = new HMACSHA1(secret))
                     {
-                        int length = (int)request.ContentLength64;
-                        byte[] data = new byte[length];
-                        request.InputStream.Read(data, 0, length);
-                        string content = Encoding.UTF8.GetString(data, 0, length);
+                        byte[] hash = hmSha1.ComputeHash(payloadBytes);
+
+                        StringBuilder sb = new StringBuilder(hash.Length * 2);
+
+                        foreach (byte b in hash)
+                        {
+                            sb.AppendFormat("{0:x2}", b);
+                        }
+
+                        hashString = sb.ToString();
+                    }
+                    if (hashString == sentSecret)
+                    {
+                        Console.WriteLine("Identical!");
                         if (content.Contains("commits"))
                         {
-                            Program.TriggerNewUpdateEvent(content.Contains(@"""name"": ""ChinoHandler"""));
+                            Program.TriggerNewUpdateEvent(!content.Contains(@"""name"": ""ChinoHandler"""));
                         }
+                        context.Response.StatusCode = 200;
+                        context.Response.Close();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Mismatch - \"{0}\" - \"{1}\"", sentSecret, hashString);
+                        context.Response.StatusCode = 500;
+                        context.Response.Close();
                     }
                 }
             }

@@ -68,6 +68,14 @@ namespace ChinoHandler
 
             Logger.Log("Initializing updater...");
             Updater = new Updater(Config);
+            BotUpdate += () => 
+            {
+                Updater.Update(true);
+            };
+            HandlerUpdate += () =>
+            {
+                Updater.Update(false);
+            };
             Logger.Log("Updater initialized!", Color: ConsoleColor.Green);
             
             Logger.Log("Initializing Remote Console...");
