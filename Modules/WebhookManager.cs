@@ -110,6 +110,7 @@ namespace ChinoHandler.Modules
                     {
                         if (content.Contains("commits"))
                         {
+                            File.WriteAllText("asd.json", content);
                             bool handler = content.Contains("\"name\": \"ChinoHandler\"");
                             Console.WriteLine(handler);
                             Program.TriggerNewUpdateEvent(!handler);
