@@ -110,9 +110,7 @@ namespace ChinoHandler.Modules
                     {
                         if (content.Contains("commits"))
                         {
-                            File.WriteAllText("asd.json", content);
-                            bool handler = content.Contains("\"name\": \"ChinoHandler\"");
-                            Console.WriteLine(handler);
+                            bool handler = content.Contains("\"name\":\"ChinoHandler\"") || content.Contains("\"name\": \"ChinoHandler\"");
                             Program.TriggerNewUpdateEvent(!handler);
                         }
                         context.Response.StatusCode = 200;
