@@ -101,7 +101,7 @@ namespace ChinoHandler.Modules
         }
         string Compile(string Folder)
         {
-            string csporj = Directory.EnumerateFiles(Folder, "*.csproj").First();
+            string csporj = Path.GetFileName(Directory.EnumerateFiles(Folder, "*.csproj").First());
             StartAndWait("dotnet restore " + csporj, Folder);
             string copyFolder = Folder + "/bin/Release/netcoreapp3.1/";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
