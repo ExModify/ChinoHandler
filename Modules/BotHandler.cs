@@ -55,12 +55,19 @@ namespace ChinoHandler.Modules
             {
                 CreateProcess();
                 ChinoProcess.Start();
+                ChinoProcess.EnableRaisingEvents = true;
                 Running = true;
+                Program.MenuHandler.Rename("Start", "Switch to Chino logs");
                 ChinoProcess.Exited += (s, e) =>
                 {
                     Running = false;
+                    Program.MenuHandler.Rename("Switch to Chino logs", "Start");
                     System.Console.WriteLine("Chino-chan exited with code: " + ChinoProcess.ExitCode);
                     Exit?.Invoke();
+                    if (ChinoProcess.ExitCode != 3)
+                    {
+                        Start();
+                    }
                 };
                 Writer = ChinoProcess.StandardInput;
                 Reader = ChinoProcess.StandardOutput;
@@ -68,7 +75,14 @@ namespace ChinoHandler.Modules
                 {
                     while (!ChinoProcess.HasExited)
                     {
-                        ProcessChinoOutput(Reader.ReadLine());
+                        try
+                        {
+                            ProcessChinoOutput(Reader.ReadLine());
+                        }
+                        catch
+                        {
+                            break;
+                        }
                     }
                 });
                 th.Start();
@@ -91,8 +105,8 @@ namespace ChinoHandler.Modules
         }
         public void Send(string Message)
         {
-            Writer.Flush();
             Writer.WriteLine(Message);
+            Writer.Flush();
         }
 
         private void ProcessChinoOutput(string Line)

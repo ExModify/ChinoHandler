@@ -27,11 +27,14 @@ namespace ChinoHandler.Modules
                 Console.WriteLine(option.Number + " - " + option.Name);
             }
         }
-        private void ReinitalizeNumbers()
+        public void Rename(string OldName, string NewName)
         {
             for (int i = 0; i < menus.Count; i++)
             {
-                menus[i].Number = (i + 1).ToString();
+                if (menus[i].Name == OldName)
+                {
+                    menus[i].Name = NewName;
+                }
             }
         }
         public MenuOption GetOption(string Input)
@@ -44,6 +47,13 @@ namespace ChinoHandler.Modules
                 }
             }
             return null;
+        }
+        private void ReinitalizeNumbers()
+        {
+            for (int i = 0; i < menus.Count; i++)
+            {
+                menus[i].Number = (i + 1).ToString();
+            }
         }
     }
 }

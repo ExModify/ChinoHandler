@@ -134,31 +134,40 @@ namespace ChinoHandler
         public static void HandleCommand(string input)
         {
             if (ShowMenu) // handle menu options
+            {
+                MenuOption option = MenuHandler.GetOption(input);
+                if (option == null)
                 {
-                    MenuOption option = MenuHandler.GetOption(input);
-                    if (option == null)
-                    {
-                        Console.Clear();
-                        System.Console.WriteLine("Unknown command!");
-                    }
-                    else
-                    {
-                        Console.Clear();
-                        option.Action.Invoke();
-                    }
+                    Console.Clear();
+                    System.Console.WriteLine("Unknown command!");
                 }
-                else // handle generic commands / send to bot
+                else
                 {
-                    if (input.ToLower() == "menu")
-                    {
-                        ShowMenu = true;
-                    }
-                    else
-                    {
-                        BotHandler.Send(input);
-                    }
+                    Console.Clear();
+                    option.Action.Invoke();
+                }
+            }
+            else // handle generic commands / send to bot
+            {
+                string cmd = input.ToLower();
+                if (cmd == "menu")
+                {
+                    ShowMenu = true;
+                }
+                else if (cmd == "exit")
+                {
+                    BotHandler.Send(input);
+                    BotHandler.ChinoProcess.WaitForExit();
+                    Environment.Exit(0);
+                }
+                else if (cmd == "stop")
+                {
+                    BotHandler.Send("quit");
+                    BotHandler.ChinoProcess.WaitForExit();
+                    ShowMenu = true;
+                }
 
-                }
+            }
         }
         public static long GetMemoryUsage()
         {
