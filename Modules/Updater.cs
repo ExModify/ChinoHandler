@@ -123,7 +123,7 @@ namespace ChinoHandler.Modules
             if (IsBot)
             {
                 string location = Program.BotHandler.Location;
-                Program.BotHandler.Quit();
+                Program.BotHandler.Update();
                 File.Copy(file, location, true);
                 Program.BotHandler.Start();
             }
