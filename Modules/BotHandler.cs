@@ -93,13 +93,8 @@ namespace ChinoHandler.Modules
         public void Quit()
         {
             if (Running)
-                ChinoProcess.Kill();
-        }
-        public void Update()
-        {
-            if (Running)
             {
-                Send("updatefound");
+                Send("exit");
                 ChinoProcess.WaitForExit();
             }
         }
