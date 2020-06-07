@@ -36,11 +36,11 @@ namespace ChinoHandler.Modules
                 }
             }
         }
-        public static void Log(string Message = "", string Source = "Handler", ConsoleColor Color = ConsoleColor.White, string Severity = "")
+        public static void Log(string Message = "", string Source = "Handler", ConsoleColor Color = ConsoleColor.White, string Severity = "", DateTime? Time = null)
         {
-            bool hang = Program.ShowMenu;
+            bool hang = Program.ShowMenu || Severity == "Verbose";
 
-            string logLine = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+            string logLine = (Time ?? DateTime.Now).ToString("yyyy/MM/dd HH:mm:ss");
             if (!hang)
                 WriteSection(logLine, ConsoleColor.Cyan);
             if (!string.IsNullOrWhiteSpace(Source))
@@ -65,7 +65,7 @@ namespace ChinoHandler.Modules
                 Message = Message,
                 Module = Source,
                 Color = Color,
-                Type = Severity
+                Severity = Severity
             };
             if (hang) HungLogs.Add(msg);
 

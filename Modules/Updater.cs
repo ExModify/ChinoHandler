@@ -20,6 +20,8 @@ namespace ChinoHandler.Modules
         string BotDownloadUrl;
         string HandlerDownloadUrl;
 
+        public bool IsUpdate { get; set; }
+
         public Updater(Config Config)
         {
             TempFolder = Config.TempFolder;
@@ -123,6 +125,7 @@ namespace ChinoHandler.Modules
             if (IsBot)
             {
                 string location = Program.BotHandler.Location;
+                IsUpdate = true;
                 Program.BotHandler.Quit();
                 File.Copy(file, location, true);
                 Program.BotHandler.Start();

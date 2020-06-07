@@ -118,7 +118,15 @@ namespace ChinoHandler
             ShowMenu = !Config.BypassMenu;
             BotHandler.Exit += () =>
             {
-                ShowMenu = true;
+                if (!Updater.IsUpdate)
+                {
+                    if (BotHandler.ChinoProcess.ExitCode == 3)
+                    {
+                        ShowMenu = true;
+                        MenuHandler.Display();
+                    }
+                }
+                else Updater.IsUpdate = false;
             };
             while (Running)
             {
@@ -130,7 +138,7 @@ namespace ChinoHandler
                 {
                     BotHandler.Start();
                     ShowMenu = false;
-                    Logger.HungLogs.ForEach(t => Logger.Log(t.Message, t.Module, t.Color, t.Type));
+                    Logger.HungLogs.ForEach(t => Logger.Log(t.Message, t.Module, t.Color, t.Severity));
                     Logger.HungLogs.Clear();
                 }
                 string input = Console.ReadLine();

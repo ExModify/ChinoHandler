@@ -122,7 +122,7 @@ namespace ChinoHandler.Modules
                 try
                 {
                     LogMessage Response = JsonConvert.DeserializeObject<LogMessage>(Line);
-                    Logger.Log(Response.Message, Response.Module, Response.Color, Response.Type);
+                    Logger.Log(Response.Message, Response.Module, Response.Color, Response.Severity, Response.Time);
                 }
                 catch
                 {
