@@ -129,6 +129,7 @@ namespace ChinoHandler.Modules
                 Program.BotHandler.Quit();
                 File.Copy(file, location, true);
                 Program.BotHandler.Start();
+                Directory.Delete(TempFolder, true);
             }
             else
             {
