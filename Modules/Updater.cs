@@ -41,6 +41,7 @@ namespace ChinoHandler.Modules
             try
             {
                 Download(IsBot);
+                Logger.Log("Downloaded!", "Updater", ConsoleColor.Magenta);
             }
             catch (Exception e)
             {
@@ -52,6 +53,7 @@ namespace ChinoHandler.Modules
             try
             {
                 Path = Extract().Replace("\\", "/");
+                Logger.Log("Extracted!", "Updater", ConsoleColor.Magenta);
             }
             catch (Exception e)
             {
@@ -62,6 +64,7 @@ namespace ChinoHandler.Modules
             try
             {
                 Path = Compile(Path).Replace("\\", "/");
+                Logger.Log("Compiled!", "Updater", ConsoleColor.Magenta);
             }
             catch (Exception e)
             {
@@ -72,6 +75,7 @@ namespace ChinoHandler.Modules
             try
             {
                 Swap(IsBot, Path);
+                Logger.Log("Swapped!", "Updater", ConsoleColor.Magenta);
             }
             catch (Exception e)
             {
