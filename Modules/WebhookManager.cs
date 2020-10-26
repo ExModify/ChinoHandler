@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Security.Cryptography;
 using System;
 using System.IO;
@@ -6,12 +7,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using ChinoHandler.Models;
+using System.Net.Sockets;
 
 namespace ChinoHandler.Modules
 {
     public class WebhookManager
     {
-        HttpListener Listener;
+        TcpListener Listener;
 
         CancellationTokenSource Source;
         CancellationToken Token;
@@ -19,9 +21,9 @@ namespace ChinoHandler.Modules
         
         public WebhookManager(Config Config)
         {
-            Listener = new HttpListener();
-            Listener.Prefixes.Add(Config.WebhookUrl);
+            int port = int.Parse(string.Join("", Config.WebhookUrl.Split(':').Last().Where(t => char.IsDigit(t))));
 
+            Listener = new TcpListener(IPAddress.Any, port);
 
             Secret = Config.WebhookSecret;
             Source = new CancellationTokenSource();
@@ -57,75 +59,113 @@ namespace ChinoHandler.Modules
         {
             while (!Token.IsCancellationRequested)
             {
-                HttpListenerContext context = Listener.GetContext();
-                HttpListenerRequest request = context.Request;
+                TcpClient client = Listener.AcceptTcpClient();
 
-                if (request.HttpMethod != "POST")
+                StreamReader reader = new StreamReader(client.GetStream());
+                StreamWriter writer = new StreamWriter(client.GetStream());
+
+                string content = GetData(reader, Secret);
+                Respond(writer);
+
+                writer.Close();
+                client.Close();
+
+                if (content != null && content.Contains("commits"))
                 {
-                    Console.WriteLine("Not POST!");
-                    HttpListenerResponse response = context.Response;
-
-                    string content = 
-                    @"<html>
-                        <head>
-                            <script>
-                                document.location = ""https://chino.exmodify.com/"";
-                            </script>
-                        </head>
-                        <body>
-                        </body>
-                    </html>";
-
-                    byte[] buffer = Encoding.UTF8.GetBytes(content);
-                    response.ContentLength64 = buffer.Length;
-                    response.OutputStream.Write(buffer, 0, buffer.Length);
-                    response.OutputStream.Close();
-                }
-                else
-                {
-                    int length = (int)request.ContentLength64;
-                    byte[] data = new byte[length];
-                    request.InputStream.Read(data, 0, length);
-                    string content = Encoding.UTF8.GetString(data, 0, length);
-
-                    string sentSecret = request.Headers.Get("X-Hub-Signature").Substring(5);
-                    var secret = Encoding.ASCII.GetBytes(Secret);
-                    var payloadBytes = Encoding.ASCII.GetBytes(content);
-                    string hashString;
-
-                    using (var hmSha1 = new HMACSHA1(secret))
-                    {
-                        byte[] hash = hmSha1.ComputeHash(payloadBytes);
-
-                        StringBuilder sb = new StringBuilder(hash.Length * 2);
-
-                        foreach (byte b in hash)
-                        {
-                            sb.AppendFormat("{0:x2}", b);
-                        }
-
-                        hashString = sb.ToString();
-                    }
-                    if (hashString == sentSecret)
-                    {
-                        context.Response.StatusCode = 200;
-                        context.Response.Close();
-                        
-                        if (content.Contains("commits"))
-                        {
-                            bool handler = content.Contains("\"name\":\"ChinoHandler\"") || content.Contains("\"name\": \"ChinoHandler\"");
-                            Program.TriggerNewUpdateEvent(!handler);
-                        }
-                    }
-                    else
-                    {
-                        context.Response.StatusCode = 500;
-                        context.Response.Close();
-                    }
+                    bool handler = content.Contains("\"name\":\"ChinoHandler\"") || content.Contains("\"name\": \"ChinoHandler\"");
+                    Program.TriggerNewUpdateEvent(!handler);
                 }
             }
         }
-        
 
+        
+        private string GetData(StreamReader reader, string secret)
+        {
+            int length = 0;
+            string line = reader.ReadLine();
+
+            if (!line.StartsWith("POST"))
+            {
+                return null;
+            }
+
+            string hash = "";
+
+            do
+            {
+                line = reader.ReadLine();
+                Console.WriteLine(line);
+                if (line.ToLower().StartsWith("content-length:"))
+                {
+                    length = int.Parse(line.Split(':')[1].Trim());
+                }
+
+                if (line.ToLower().StartsWith("x-hub-signature:"))
+                {
+                    hash = line.Split('=', 2)[1].ToLower();
+                }
+            }
+            while (!string.IsNullOrWhiteSpace(line));
+
+            char[] buffer = new char[length];
+
+            reader.ReadBlock(buffer, 0, length);
+
+            string content = string.Join("", buffer);
+
+            if (GetHash(secret, content) != hash)
+            {
+                return null;
+            }
+
+            return content;
+        }
+        
+        private static void Respond(StreamWriter writer)
+        {
+            string[] response = new string[13]
+            {
+                "HTTP/1.1 200 OK",
+                $"Date: " + DateTime.Now.ToUniversalTime().ToString("r"),
+                "Server: Chino-chan",
+                "Status: 200 Accepted",
+                "Last-Modified: " + DateTime.Now.ToUniversalTime().ToString("r"),
+                "Content-Length: 2",
+                "Content-Type: text/html;charset=utf-8",
+                "Connection: keep-alive",
+                "X-Content-Type-Options: nosniff",
+                "X-Frame-Options: SAMEORIGIN",
+                "X-Xss-Protection: 1; mode=block",
+                "",
+                "OK"
+            };
+            foreach (string line in response)
+            {
+                writer.WriteLine(line);
+            }
+            writer.Flush();
+        }
+
+        private static string GetHash(string Secret, string Content)
+        {
+            string hashString;
+            byte[] payloadBytes = Encoding.ASCII.GetBytes(Content);
+            byte[] secretBytes = Encoding.ASCII.GetBytes(Secret);
+            using (var hmSha1 = new HMACSHA1(secretBytes))
+            {
+                byte[] hash = hmSha1.ComputeHash(payloadBytes);
+
+                StringBuilder sb = new StringBuilder(hash.Length * 2);
+
+                foreach (byte b in hash)
+                {
+                    sb.AppendFormat("{0:x2}", b);
+                }
+
+                hashString = sb.ToString();
+            }
+
+            return hashString.ToLower();
+        }
     }
 }
