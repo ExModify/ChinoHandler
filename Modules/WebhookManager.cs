@@ -94,7 +94,6 @@ namespace ChinoHandler.Modules
             do
             {
                 line = reader.ReadLine();
-                Console.WriteLine(line);
                 if (line.ToLower().StartsWith("content-length:"))
                 {
                     length = int.Parse(line.Split(':')[1].Trim());

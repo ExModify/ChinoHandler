@@ -111,11 +111,13 @@ namespace ChinoHandler.Modules
                 string data = Line.Substring(12);
                 string[] info = data.Split('|');
                 double memUsage = (GetMemoryUsage() + Program.GetMemoryUsage()) / 1048576.0;
+                /*
                 Console.Title = $"Chino-chan | Servers: { info[0] }"
                 + $" | Executing { info[1] } commands"
                 + $" | Voice: { info[2] }"
                 + $" | Uptime: { TimeSpan.FromMilliseconds(double.Parse(info[3])).ToString(@"hh\:mm\:ss") }"
                 + $" | Memory usage: { memUsage.ToString("N2") } MB";
+                */
             }
             else
             {
