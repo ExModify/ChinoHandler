@@ -11,6 +11,7 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace ChinoHandler.Modules
 {
@@ -60,6 +61,10 @@ namespace ChinoHandler.Modules
                 Logger.Log("Couldn't extract archive! Error: " + e.Message, "Updater", ConsoleColor.Red);
                 return;
             }
+
+            File.WriteAllText("tree.txt", StartAndWait("tree " + TempFolder));
+            
+            
             Logger.Log("Compiling... ", "Updater", ConsoleColor.Magenta);
             try
             {
@@ -140,12 +145,11 @@ namespace ChinoHandler.Modules
             {
                 string location = Process.GetCurrentProcess().MainModule.FileName;
                 string updateFile = "update";
-                string content;
                 int pid = Process.GetCurrentProcess().Id;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     updateFile += ".bat";
-                    content = ":loop\r\n"
+                    string content = ":loop\r\n"
                             + "tasklist | find \"" + pid + "\"  >nul 2>&1\r\n"
                             + "if %errorlevel% == 0 (\r\n"
                             + "timeout /t 5 /nobreak\r\n"
@@ -153,43 +157,29 @@ namespace ChinoHandler.Modules
                             + $"copy /y \"{ file }\" \"{ location }\"\r\n"
                             + $"start cmd /c \"{ location }\"\r\n"
                             + "del \"%~f0\"";
-                }
-                else
-                {
-                    updateFile += ".sh";
-                    content = $"tail --pid={ pid } -f /dev/null\n"
-                            + $"yes | cp -rf \"{ file }\" \"{ location }\"\n"
-                            + "rm -- \"$0\"\n"
-                            + $"{ location }";
-                }
-                File.WriteAllText(updateFile, content);
-                ProcessStartInfo info;
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
+                            
+                    File.WriteAllText(updateFile, content);
+                    ProcessStartInfo info;
                     info = new ProcessStartInfo()
                     {
                         FileName = "cmd",
                         Arguments = $"/c { updateFile }",
                         UseShellExecute = true
                     };
+                    Process.Start(info);
                 }
                 else
                 {
-                    info = new ProcessStartInfo()
-                    {
-                        FileName = "/bin/bash",
-                        Arguments = $"{ updateFile }",
-                        UseShellExecute = true
-                    };
+                    File.Delete(location);
+                    File.Copy(file, location);
                 }
-                Process.Start(info);
                 Program.BotHandler.Quit();
                 Environment.Exit(0);
             }
         }
 
 
-        void StartAndWait(string Command, string WorkingDirectory = null)
+        string StartAndWait(string Command, string WorkingDirectory = null)
         {
             string[] cmd = Command.Split(' ');
             ProcessStartInfo info = new ProcessStartInfo()
@@ -204,6 +194,8 @@ namespace ChinoHandler.Modules
             if (WorkingDirectory != null) info.WorkingDirectory = WorkingDirectory;
             Process p = Process.Start(info);
             p.WaitForExit();
+
+            return p.StandardOutput.ReadToEnd();
         }
     }
 }
