@@ -62,9 +62,6 @@ namespace ChinoHandler.Modules
                 return;
             }
 
-            File.WriteAllText("tree.txt", StartAndWait("tree " + TempFolder));
-            
-            
             Logger.Log("Compiling... ", "Updater", ConsoleColor.Magenta);
             try
             {
@@ -113,7 +110,9 @@ namespace ChinoHandler.Modules
         string Compile(string Folder)
         {
             string csporj = Path.GetFileName(Directory.EnumerateFiles(Folder, "*.csproj").First());
-            StartAndWait("dotnet restore " + csporj, Folder);
+            System.Console.WriteLine();
+            System.Console.WriteLine(StartAndWait("dotnet restore " + csporj, Folder));
+            System.Console.WriteLine();
             string copyFolder = Folder + "/bin/Release/netcoreapp3.1/";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
