@@ -111,6 +111,7 @@ namespace ChinoHandler.Modules
         {
             string csporj = Path.GetFileName(Directory.EnumerateFiles(Folder, "*.csproj").First());
             System.Console.WriteLine();
+            System.Console.WriteLine("csproj: " + csporj);
             System.Console.WriteLine(StartAndWait("dotnet restore " + csporj, Folder));
             System.Console.WriteLine();
             string copyFolder = Folder + "/bin/Release/netcoreapp3.1/";
@@ -194,7 +195,7 @@ namespace ChinoHandler.Modules
             Process p = Process.Start(info);
             p.WaitForExit();
 
-            return p.StandardOutput.ReadToEnd();
+            return p.StandardOutput.ReadToEnd() + "\n\n" + p.StandardError.ReadToEnd();
         }
     }
 }
