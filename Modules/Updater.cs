@@ -110,10 +110,7 @@ namespace ChinoHandler.Modules
         string Compile(string Folder)
         {
             string csporj = Path.GetFileName(Directory.EnumerateFiles(Folder, "*.csproj").First());
-            System.Console.WriteLine();
-            System.Console.WriteLine("csproj: " + csporj);
-            System.Console.WriteLine(StartAndWait("dotnet restore " + csporj, Folder));
-            System.Console.WriteLine();
+            StartAndWait("dotnet restore " + csporj, Folder);
             string copyFolder = Folder + "/bin/Release/netcoreapp3.1/";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -136,6 +133,7 @@ namespace ChinoHandler.Modules
                 string location = Program.BotHandler.Location;
                 IsUpdate = true;
                 Program.BotHandler.Quit();
+                File.Delete(location);
                 File.Copy(file, location, true);
                 Program.BotHandler.Start();
                 Directory.Delete(TempFolder, true);
